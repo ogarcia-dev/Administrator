@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+    administrator:
+        build: .
+        image: administrator_image
+        container_name: administrator_container
+        command: uvicorn core:app --host 0.0.0.0 --port 8002 --reload
+
+        ports:
+            - 8002:8002
+
+        env_file:
+            - .env
+
+        volumes:
+            - ./app:/cephalopodus/administrator

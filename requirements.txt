@@ -1,0 +1,21 @@
+# FASTAPI
+uvicorn[standar]
+fastapi[standar]
+
+# ORM
+alembic
+asyncpg
+SQLAlchemy[asyncio]
+
+# SCHEMA
+pydantic-settings
+pydantic[email]
+pydantic
+
+# MODULES
+httpx
+PyJWT
+grpcio
+grpcio-tools
+cryptography
+python-decouple
