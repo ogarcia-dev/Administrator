@@ -69,9 +69,9 @@ class BaseRepository:
                 session.add(object)
                 await session.commit()
 
-                object = await session.get(self.model, object.id)
+                result = await self.get(id=object.id)
             
-            return self.response_schema.model_validate(obj=object, from_attributes=True)
+            return self.response_schema.model_validate(obj=result, from_attributes=True)
 
 
     async def update(self, schema: RequestSchemaType, **kwargs: Dict[int, Any]) -> ResponseSchemaType:

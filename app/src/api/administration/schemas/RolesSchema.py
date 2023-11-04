@@ -1,6 +1,6 @@
 from pydantic import (
     BaseModel, 
-    validator
+    validator,
 )
 
 from .SystemsSchema import SystemsResponseSchema
