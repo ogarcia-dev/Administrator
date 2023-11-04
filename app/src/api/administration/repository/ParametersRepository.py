@@ -36,15 +36,16 @@ class ParameterRepository(BaseRepository):
 
     async def find_by_code(self, code: str) -> Any:
         async with self.get_connection() as session:
-            statement = select(self.model).where(self.model.parameter_code == code)
-        
-            try:
-                result = await session.execute(statement)
-                parameter = result.scalar_one()
-                return parameter
-        
-            except NoResultFound:
-                return None
+            async with session.begin():
+                statement = select(self.model).where(self.model.parameter_code == code)
+            
+                try:
+                    result = await session.execute(statement)
+                    parameter = result.scalar_one()
+                    return parameter
+            
+                except NoResultFound:
+                    return None
 
 
 

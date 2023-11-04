@@ -34,6 +34,7 @@ class ParametersRequestSchema(BaseModel):
 
 
 class ParametersResponseSchema(BaseModel):
+    id: int
     parameter_code: str
     parameter_description: Optional[str]
     parameter_value1: Optional[str]

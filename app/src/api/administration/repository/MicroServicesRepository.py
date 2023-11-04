@@ -29,36 +29,36 @@ class MicroServiceRepository(BaseRepository):
 
     async def create_microservices(self, schema: MicroservicesRequestSchema) -> Union[MicroservicesRequestSchema, HTTPException]:
         async with self.get_connection() as session:
-            system = await session.get(Systems, schema.microservice_system)
-            if system is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail={
-                        "code": status.HTTP_404_NOT_FOUND,
-                        "message": "El sistema seleccionado no existe."
-                    }
-                )
+            async with session.begin():
+                system = await session.get(Systems, schema.microservice_system)
+                if system is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail={
+                            "code": status.HTTP_404_NOT_FOUND,
+                            "message": "El sistema seleccionado no existe."
+                        }
+                    )
 
-            if await session.query(self.model).filter(self.model.microservice_name == schema.microservice_name.upper()).exists():
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail={
-                        "code": status.HTTP_404_NOT_FOUND,
-                        "message": "El nombre del microservicio que quieres crear ya existe."
-                    }
-                )
+                if await session.query(self.model).filter(self.model.microservice_name == schema.microservice_name.upper()).exists():
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail={
+                            "code": status.HTTP_404_NOT_FOUND,
+                            "message": "El nombre del microservicio que quieres crear ya existe."
+                        }
+                    )
 
-            if await session.query(self.model).filter(self.model.microservice_base_url == schema.microservice_base_url).exists():
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail={
-                        "code": status.HTTP_404_NOT_FOUND,
-                        "message": "La URL base del microservicio que quieres crear ya existe."
-                    }
-                )
+                if await session.query(self.model).filter(self.model.microservice_base_url == schema.microservice_base_url).exists():
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail={
+                            "code": status.HTTP_404_NOT_FOUND,
+                            "message": "La URL base del microservicio que quieres crear ya existe."
+                        }
+                    )
 
-            try:
-                async with session.begin():
+                try:
                     microservice = self.model(
                         microservice_name=schema.microservice_name.upper(),
                         microservice_base_url=schema.microservice_base_url,
@@ -90,59 +90,60 @@ class MicroServiceRepository(BaseRepository):
 
                         session.add(endpoint_data)
 
-                return self.response_schema.model_validate(obj=microservice, from_attributes=True)
+                    return self.response_schema.model_validate(obj=microservice, from_attributes=True)
             
-            except IntegrityError as error:
-                raise HTTPException(status_code=400, detail=f"Error: {error}")
+                except IntegrityError as error:
+                    raise HTTPException(status_code=400, detail=f"Error: {error}")
 
 
     async def update_microservices(self, id: int, schema: MicroservicesRequestSchema) -> Union[MicroServices, HTTPException]:
         async with self.get_connection() as session:
-            microservice = await session.get(MicroServices, id)
-            if microservice is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail={
-                        "code": status.HTTP_404_NOT_FOUND,
-                        "message": "El microservicio no existe."
-                    }
-                )
+            async with session.begin():
+                microservice = await session.get(MicroServices, id)
+                if microservice is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail={
+                            "code": status.HTTP_404_NOT_FOUND,
+                            "message": "El microservicio no existe."
+                        }
+                    )
 
-            system = await session.get(Systems, schema.microservice_system)
-            if system is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail={
-                        "code": status.HTTP_404_NOT_FOUND,
-                        "message": "El sistema seleccionado no existe."
-                    }
-                )
+                system = await session.get(Systems, schema.microservice_system)
+                if system is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail={
+                            "code": status.HTTP_404_NOT_FOUND,
+                            "message": "El sistema seleccionado no existe."
+                        }
+                    )
 
-            microservice.microservice_name = schema.microservice_name.upper()
-            microservice.microservice_base_url = schema.microservice_base_url
-            microservice.microservice_status = schema.microservice_status
-            microservice.microservice_system = system
+                microservice.microservice_name = schema.microservice_name.upper()
+                microservice.microservice_base_url = schema.microservice_base_url
+                microservice.microservice_status = schema.microservice_status
+                microservice.microservice_system = system
 
-            for endpoint in schema.endpoints_microservice:
-                endpoint_data = Endpoints(
-                    endpoint_name=endpoint.endpoint_name,
-                    endpoint_url=endpoint.endpoint_url,
-                    endpoint_request=endpoint.endpoint_request,
-                    endpoint_parameters=endpoint.endpoint_parameters,
-                    endpoint_description=endpoint.endpoint_description,
-                    endpoint_status=endpoint.endpoint_status,
-                    endpoint_authenticated=endpoint.endpoint_authenticated,
-                    endpoint_microservice=microservice
-                )
+                for endpoint in schema.endpoints_microservice:
+                    endpoint_data = Endpoints(
+                        endpoint_name=endpoint.endpoint_name,
+                        endpoint_url=endpoint.endpoint_url,
+                        endpoint_request=endpoint.endpoint_request,
+                        endpoint_parameters=endpoint.endpoint_parameters,
+                        endpoint_description=endpoint.endpoint_description,
+                        endpoint_status=endpoint.endpoint_status,
+                        endpoint_authenticated=endpoint.endpoint_authenticated,
+                        endpoint_microservice=microservice
+                    )
 
-                endpoint_data.roles = [await session.get(Roles, role_id) for role_id in endpoint.roles]
-                endpoint_data.groups = [await session.get(Groups, group_id) for group_id in endpoint.groups]
+                    endpoint_data.roles = [await session.get(Roles, role_id) for role_id in endpoint.roles]
+                    endpoint_data.groups = [await session.get(Groups, group_id) for group_id in endpoint.groups]
 
-                session.merge(endpoint_data)
+                    session.merge(endpoint_data)
 
-            await session.commit()
+                await session.commit()
 
-            return self.response_schema.model_validate(obj=microservice, from_attributes=True)
+                return self.response_schema.model_validate(obj=microservice, from_attributes=True)
 
 
 

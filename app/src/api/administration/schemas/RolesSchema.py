@@ -32,6 +32,7 @@ class RolesRequestSchema(BaseModel):
 
 
 class RolesResponseSchema(BaseModel):
+    id: int
     role_name: str
     role_description: str
     role_system: str

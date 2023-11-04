@@ -43,8 +43,12 @@ class BaseRepository:
         """
             Obtiene una conexión a la base de datos.
         """
-        async with CONNECTION_DATABASE as session:
-            yield session
+        async with CONNECTION_DATABASE.SessionLocal() as session:
+            try:
+                yield session
+    
+            finally:
+                await session.close()
 
 
     async def create(self, schema: RequestSchemaType, **kwargs: Dict[str, Any]) -> ResponseSchemaType:
@@ -120,9 +124,10 @@ class BaseRepository:
                 Una lista de objetos Pydantic que cumplen con los criterios de filtrado.
         """
         async with self.get_connection() as session:
-            statement = select(self.model).filter_by(**kwargs)
-            result = await session.execute(statement)
-            return [self.response_schema.model_validate(obj=object, from_attributes=True) for object in result.scalars()]
+            async with session.begin():
+                statement = select(self.model).filter_by(**kwargs)
+                result = await session.execute(statement)
+                return [self.response_schema.model_validate(obj=object, from_attributes=True) for object in result.scalars()]
 
 
     async def get(self, **kwargs: Dict[int, Any]) -> ResponseSchemaType:
@@ -136,15 +141,16 @@ class BaseRepository:
                 Un objeto Pydantic encontrado en la base de datos.
         """
         async with self.get_connection() as session:
-            statement = select(self.model).filter_by(**kwargs)
-        
-            try:
-                data = await session.execute(statement)
-                result = data.scalar_one()
-                return self.response_schema.model_validate(obj=result, from_attributes=True)
-        
-            except exc.NoResultFound:
-                return None
+            async with session.begin():
+                statement = select(self.model).filter_by(**kwargs)
+            
+                try:
+                    data = await session.execute(statement)
+                    result = data.scalar_one()
+                    return self.response_schema.model_validate(obj=result, from_attributes=True)
+            
+                except exc.NoResultFound:
+                    return None
 
         
 

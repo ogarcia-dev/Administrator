@@ -39,6 +39,7 @@ class GroupsRequestSchema(BaseModel):
     
 
 class GroupsResponseSchema(BaseModel):
+    id: int
     group_name: str
     group_description: str
     endpoint_system: str

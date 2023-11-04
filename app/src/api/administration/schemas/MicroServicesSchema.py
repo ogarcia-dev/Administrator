@@ -41,6 +41,7 @@ class MicroservicesRequestSchema(BaseModel):
 
 
 class MicroservicesResponseSchema(BaseModel):
+    id: int
     microservice_name: str
     microservice_base_url: str
     microservice_status: bool

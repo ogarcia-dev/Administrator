@@ -18,30 +18,32 @@ class RoleRepository(BaseRepository):
 
     async def get_all_roles_system(self, system_id: str) -> List:
         async with self.get_connection() as session:
-            statement = select(self.model).where(self.model.role_system_id == system_id)
-            result = await session.execute(statement)
-            roles = result.scalars().all()
+            async with session.begin():
+                statement = select(self.model).where(self.model.role_system_id == system_id)
+                result = await session.execute(statement)
+                roles = result.scalars().all()
 
-            return [
-                {
-                   "id": role.id, 
-                   "role_name": role.role_name
-                } for role in roles
-            ]
+                return [
+                    {
+                    "id": role.id, 
+                    "role_name": role.role_name
+                    } for role in roles
+                ]
 
 
     async def get_all_systems_roles(self, systems_id: List[str]) -> List:
         async with self.get_connection() as session:
-            statement = select(self.model).where(self.model.role_system_id.in_(systems_id))
-            result = await session.execute(statement)
-            roles = result.scalars().all()
+            async with session.begin():
+                statement = select(self.model).where(self.model.role_system_id.in_(systems_id))
+                result = await session.execute(statement)
+                roles = result.scalars().all()
 
-            return [
-                {
-                    "id": role.id, 
-                    "role_name": role.role_name
-                } for role in roles
-            ]
+                return [
+                    {
+                        "id": role.id, 
+                        "role_name": role.role_name
+                    } for role in roles
+                ]
 
 
 

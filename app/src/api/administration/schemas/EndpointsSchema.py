@@ -43,6 +43,7 @@ class EndpointsRequestSchema(BaseModel):
 
 from .MicroServicesSchema import MicroservicesRequestSchema
 class EndpointsResponseSchema(BaseModel):
+    id: int
     endpoint_name: Optional[str]
     endpoint_url: str
     endpoint_request: str
