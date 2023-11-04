@@ -3,12 +3,14 @@ from pydantic import (
     validator
 )
 
+from .SystemsSchema import SystemsResponseSchema
+
 
 
 class RolesRequestSchema(BaseModel):
     role_name: str
     role_description: str
-    role_system: str
+    role_system_id: int
     role_status: bool
 
     @validator("role_name")
@@ -23,11 +25,11 @@ class RolesRequestSchema(BaseModel):
             raise ValueError("La longitud de la descripción del rol debe tener entre 1 y 255 caracteres.")
         return role_description
     
-    @validator("role_system")
-    def role_system_validator(cls, role_system: str):
-        if role_system is None:
+    @validator("role_system_id")
+    def role_system_id_validator(cls, role_system_id: str):
+        if role_system_id is None:
             raise ValueError("El campo del sistema es obligatorio.")
-        return role_system
+        return role_system_id
     
 
 
@@ -35,5 +37,6 @@ class RolesResponseSchema(BaseModel):
     id: int
     role_name: str
     role_description: str
-    role_system: str
+    role_system_id: int
     role_status: bool
+    role_system: SystemsResponseSchema

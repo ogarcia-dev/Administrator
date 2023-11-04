@@ -19,9 +19,9 @@ class UsersRequestSchema(BaseModel):
     email: EmailStr
     is_active: bool
     is_superuser: bool
-    roles: Optional[List[str]]
-    groups: Optional[List[str]]
-    systems: Optional[List[str]]
+    roles: Optional[List[int]]
+    groups: Optional[List[int]]
+    systems: Optional[List[int]]
 
     @validator("email")
     def email_validator(cls, email:str):

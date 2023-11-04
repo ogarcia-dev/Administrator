@@ -15,9 +15,9 @@ from .RolesSchema import RolesResponseSchema
 class GroupsRequestSchema(BaseModel):
     group_name: str
     group_description: str
-    endpoint_system: str
+    group_system_id: int
     group_status: bool
-    roles: Optional[List[str]]
+    roles: Optional[List[int]]
 
     @validator("group_name")
     def group_name_validator(cls, group_name:str):
@@ -31,17 +31,17 @@ class GroupsRequestSchema(BaseModel):
             raise ValueError("La longitud de la descripción del grupo debe tener entre 1 y 255 caracteres.")
         return group_description
     
-    @validator("endpoint_system")
-    def endpoint_system_validator(cls, endpoint_system: str):
-        if endpoint_system is None:
+    @validator("group_system_id")
+    def group_system_id_validator(cls, group_system_id: str):
+        if group_system_id is None:
             raise ValueError("El campo del sistema es obligatorio.")
-        return endpoint_system
+        return group_system_id
     
 
 class GroupsResponseSchema(BaseModel):
     id: int
     group_name: str
     group_description: str
-    endpoint_system: str
+    group_system_id: int
     group_status: bool
     roles: Optional[List[RolesResponseSchema]]

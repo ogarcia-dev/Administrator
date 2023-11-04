@@ -25,7 +25,7 @@ class ParametersServices:
 
     @staticmethod
     async def parameters_update(id: int, schema: ParametersRequestSchema) -> Any:
-        return await PARAMETER_REPOSITORY.update(id, schema)
+        return await PARAMETER_REPOSITORY.update(schema, id=id)
 
     @staticmethod
     async def parameters_delete(id: int) -> Any:

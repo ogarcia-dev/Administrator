@@ -41,15 +41,16 @@ class UserRepository(BaseRepository):
                     )
         
                 user = Users(**schema.model_dump(exclude={"roles", "groups", "systems"}))
+                user.password = "password_user"
                 session.add(user)
 
-                roles = await session.execute(select(Roles).filter(Roles.role_name.in_(schema.roles)))
+                roles = await session.execute(select(Roles).filter(Roles.id.in_(schema.roles)))
                 user.roles.extend(roles.scalars().all())
 
-                groups = await session.execute(select(Groups).filter(Groups.group_name.in_(schema.groups)))
+                groups = await session.execute(select(Groups).filter(Groups.id.in_(schema.groups)))
                 user.groups.extend(groups.scalars().all())
 
-                systems = await session.execute(select(Systems).filter(Systems.name_system.in_(schema.systems)))
+                systems = await session.execute(select(Systems).filter(Systems.id.in_(schema.systems)))
                 user.systems.extend(systems.scalars().all())
 
                 await session.commit()
@@ -66,11 +67,12 @@ class UserRepository(BaseRepository):
     async def update_user(self, id: int, schema: UsersRequestSchema) -> HTTPException:
         async with self.get_connection() as session:
             async with session.begin():
-                user = await session.execute(select(self.model).options(
+                statement = await session.execute(select(self.model).options(
                     selectinload(self.model.roles), 
                     selectinload(self.model.groups), 
                     selectinload(self.model.systems)
-                ).filter_by(id=id)).scalar()
+                ).filter_by(id=id))
+                user = statement.scalar()
 
                 if not user:
                     raise HTTPException(
@@ -122,12 +124,13 @@ class UserRepository(BaseRepository):
                         }
                     )
 
-                user.password = "reset_password_user"
+                user.password = "password_user"
                 await session.commit()
 
 
     async def find_by_email(self, email: str, session) -> Optional[Users]:
-        return await session.execute(select(self.model).filter(self.model.email == email)).scalar()
+        statement = await session.execute(select(self.model).filter(self.model.email == email))
+        return statement.scalar()
 
 
 

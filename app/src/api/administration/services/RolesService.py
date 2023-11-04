@@ -32,7 +32,7 @@ class RolesServices:
 
     @staticmethod
     async def roles_update(id: int, schema: RolesRequestSchema) -> Any:
-        return await ROLE_REPOSITORY.update(id, schema)
+        return await ROLE_REPOSITORY.update(schema, id=id)
 
     @staticmethod
     async def roles_delete(id: int) -> Any:

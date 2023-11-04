@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from sqlalchemy import (
     select, 
+    update,
     or_,
     exc,
     func
@@ -86,13 +87,11 @@ class BaseRepository:
         """
         async with self.get_connection() as session:
             async with session.begin():
-                statement = (
-                    self.model
-                    .filter_by(**kwargs)
-                    .update(schema.model_dump(exclude_unset=True))
-                )
+                statement = update(self.model).filter_by(**kwargs).values(**schema.model_dump(exclude_unset=True))
                 await session.execute(statement)
+    
                 object = await session.execute(select(self.model).filter_by(**kwargs))
+
                 return self.response_schema.model_validate(obj=object.scalar_one(), from_attributes=True)
 
 

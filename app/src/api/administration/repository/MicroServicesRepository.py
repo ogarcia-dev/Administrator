@@ -6,6 +6,7 @@ from fastapi import (
 )
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.future import select
 
 from core.databases.Models import (
     MicroServices,
@@ -30,7 +31,7 @@ class MicroServiceRepository(BaseRepository):
     async def create_microservices(self, schema: MicroservicesRequestSchema) -> Union[MicroservicesRequestSchema, HTTPException]:
         async with self.get_connection() as session:
             async with session.begin():
-                system = await session.get(Systems, schema.microservice_system)
+                system = await session.get(Systems, schema.microservice_system_id)
                 if system is None:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
@@ -40,7 +41,8 @@ class MicroServiceRepository(BaseRepository):
                         }
                     )
 
-                if await session.query(self.model).filter(self.model.microservice_name == schema.microservice_name.upper()).exists():
+                microservice_name = await session.execute(select(self.model).filter(self.model.microservice_name == schema.microservice_name.upper()))
+                if microservice_name.scalar():
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail={
@@ -48,8 +50,9 @@ class MicroServiceRepository(BaseRepository):
                             "message": "El nombre del microservicio que quieres crear ya existe."
                         }
                     )
-
-                if await session.query(self.model).filter(self.model.microservice_base_url == schema.microservice_base_url).exists():
+                
+                microservice_base_url = await session.execute(select(self.model).filter(self.model.microservice_base_url == schema.microservice_base_url))
+                if microservice_base_url.scalar():
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail={
@@ -63,7 +66,7 @@ class MicroServiceRepository(BaseRepository):
                         microservice_name=schema.microservice_name.upper(),
                         microservice_base_url=schema.microservice_base_url,
                         microservice_status=schema.microservice_status,
-                        microservice_system=system
+                        microservice_system_id=schema.microservice_system_id
                     )
                     session.add(microservice)
                     session.flush()
@@ -109,7 +112,7 @@ class MicroServiceRepository(BaseRepository):
                         }
                     )
 
-                system = await session.get(Systems, schema.microservice_system)
+                system = await session.get(Systems, schema.microservice_system_id)
                 if system is None:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
@@ -122,7 +125,7 @@ class MicroServiceRepository(BaseRepository):
                 microservice.microservice_name = schema.microservice_name.upper()
                 microservice.microservice_base_url = schema.microservice_base_url
                 microservice.microservice_status = schema.microservice_status
-                microservice.microservice_system = system
+                microservice.microservice_system_id = schema.microservice_system_id
 
                 for endpoint in schema.endpoints_microservice:
                     endpoint_data = Endpoints(

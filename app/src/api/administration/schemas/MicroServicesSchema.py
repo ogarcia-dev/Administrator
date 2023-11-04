@@ -8,6 +8,7 @@ from pydantic import (
     validator
 )
 
+from src.api.administration.schemas.SystemsSchema import SystemsResponseSchema
 from src.api.administration.schemas.EndpointsSchema import EndpointsRequestSchema
 
 
@@ -16,7 +17,7 @@ class MicroservicesRequestSchema(BaseModel):
     microservice_name: str
     microservice_base_url: str
     microservice_status: bool
-    microservice_system: str
+    microservice_system_id: int
 
     endpoints_microservice: Optional[List[EndpointsRequestSchema]]
 
@@ -32,12 +33,12 @@ class MicroservicesRequestSchema(BaseModel):
             raise ValueError("La longitud de la URL base de Microservicio debe estar entre 1 y 512 caracteres.")
         return microservice_base_url
     
-    @validator("microservice_system")
-    def microservice_system_validator(cls, microservice_system: str):
-        if microservice_system is None:
+    @validator("microservice_system_id")
+    def microservice_system_id_validator(cls, microservice_system_id: str):
+        if microservice_system_id is None:
             raise ValueError("El campo de estado del microservicio es obligatorio.")
-        return microservice_system
-    
+        return microservice_system_id
+
 
 
 class MicroservicesResponseSchema(BaseModel):
@@ -45,6 +46,5 @@ class MicroservicesResponseSchema(BaseModel):
     microservice_name: str
     microservice_base_url: str
     microservice_status: bool
-    microservice_system: str
 
     endpoints_microservice: Optional[List[EndpointsRequestSchema]]

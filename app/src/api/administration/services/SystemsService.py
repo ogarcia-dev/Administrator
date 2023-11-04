@@ -14,7 +14,7 @@ class SystemsServices:
         return await SYSTEM_REPOSITORY.list(page_number=page, page_size=limit, search=search)
 
     @staticmethod
-    async def systems_get_detail(id: str) -> Any:
+    async def systems_get_detail(id: int) -> Any:
         return await SYSTEM_REPOSITORY.get(id=id)
 
     @staticmethod
@@ -22,11 +22,11 @@ class SystemsServices:
         return await SYSTEM_REPOSITORY.create(schema)
 
     @staticmethod
-    async def systems_update(id: str, schema: SystemsRequestSchema) -> Any:
-        return await SYSTEM_REPOSITORY.update(schema=schema, id=id)
+    async def systems_update(id: int, schema: SystemsRequestSchema) -> Any:
+        return await SYSTEM_REPOSITORY.update(schema, id=id)
 
     @staticmethod
-    async def systems_delete(id: str) -> Any:
+    async def systems_delete(id: int) -> Any:
         return await SYSTEM_REPOSITORY.delete(id=id)
     
 

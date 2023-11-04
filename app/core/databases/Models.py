@@ -92,7 +92,7 @@ class Systems(BaseModel):
     back_menus_menus_systems: Mapped["Menus"] = relationship(back_populates="menu_system")
     back_parameters_parameter_system: Mapped["Parameters"] = relationship(back_populates="parameter_system")
     back_roles_role_system: Mapped["Roles"] = relationship(back_populates="role_system")
-    back_groups_endpoint_system: Mapped["Groups"] = relationship(back_populates="endpoint_system")
+    back_groups_group_system: Mapped["Groups"] = relationship(back_populates="group_system")
     back_micro_services_microservice_system: Mapped["MicroServices"] = relationship(back_populates="microservice_system")
     
     def __repr__(self) -> str:
@@ -170,8 +170,8 @@ class Groups(BaseModel):
     group_status: Mapped[bool] = mapped_column(Boolean, default=False)
 
     ## relationship
-    endpoint_system_id: Mapped[int] = mapped_column(Integer, ForeignKey("systems.id"), nullable=True)
-    endpoint_system: Mapped["Systems"] = relationship(back_populates="back_groups_endpoint_system", lazy="selectin")
+    group_system_id: Mapped[int] = mapped_column(Integer, ForeignKey("systems.id"), nullable=True)
+    group_system: Mapped["Systems"] = relationship(back_populates="back_groups_group_system", lazy="selectin")
     roles: Mapped[List["Roles"]] = relationship(secondary=groups_roles, back_populates="back_groups_roles", lazy="selectin")
 
     ## back_populates

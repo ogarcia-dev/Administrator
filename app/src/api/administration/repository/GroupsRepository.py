@@ -32,7 +32,7 @@ class GroupRepository(BaseRepository):
     async def get_all_groups_system(self, system_id: int) -> List:
         async with self.get_connection() as session:
             async with session.begin():
-                statement = select(self.model).where(self.model.endpoint_system_id == system_id)
+                statement = select(self.model).where(self.model.group_system_id == system_id)
                 result = await session.execute(statement)
                 groups = result.scalars().all()
 
@@ -47,7 +47,7 @@ class GroupRepository(BaseRepository):
     async def get_all_systems_groups(self, systems_id: List[int]) -> List:
         async with self.get_connection() as session:
             async with session.begin():
-                statement = select(self.model).where(self.model.endpoint_system_id.in_(systems_id))
+                statement = select(self.model).where(self.model.group_system_id.in_(systems_id))
                 result = await session.execute(statement)
                 groups = result.scalars().all()
 
@@ -62,7 +62,7 @@ class GroupRepository(BaseRepository):
     async def create_groups(self, schema: GroupsRequestSchema) -> Union[Groups, HTTPException]:
         async with self.get_connection() as session:
             async with session.begin():
-                system = await session.get(Systems, schema.endpoint_system)
+                system = await session.get(Systems, schema.group_system_id)
                 if system is None:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
@@ -84,7 +84,7 @@ class GroupRepository(BaseRepository):
                 group = Groups(
                     group_name=schema.group_name,
                     group_description=schema.group_description,
-                    endpoint_system=system,
+                    group_system_id=schema.group_system_id,
                     group_status=schema.group_status
                 )
 
@@ -118,7 +118,7 @@ class GroupRepository(BaseRepository):
                         }
                     )
 
-                system = await session.get(Systems, schema.endpoint_system)
+                system = await session.get(Systems, schema.group_system_id)
                 if system is None:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
@@ -130,7 +130,7 @@ class GroupRepository(BaseRepository):
 
                 group.group_name = schema.group_name
                 group.group_description = schema.group_description
-                group.endpoint_system = system
+                group.group_system_id = schema.group_system_id
                 group.group_status = schema.group_status
 
                 await session.commit()
