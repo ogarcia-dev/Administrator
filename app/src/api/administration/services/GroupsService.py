@@ -25,11 +25,11 @@ class GroupsServices:
     
     @staticmethod
     async def groups_create(schema: GroupsRequestSchema) -> Any:
-        return await GROUP_REPOSITORY.create(schema)
+        return await GROUP_REPOSITORY.create_groups(schema)
     
     @staticmethod
     async def groups_update(id: int, schema: GroupsRequestSchema) -> Any:
-        return await GROUP_REPOSITORY.update(schema, id=id)
+        return await GROUP_REPOSITORY.update_groups(id, schema)
     
     @staticmethod
     async def groups_delete(id: int) -> Any:

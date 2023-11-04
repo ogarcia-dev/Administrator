@@ -9,7 +9,7 @@ from pydantic import (
 )
 
 from .RolesSchema import RolesResponseSchema
-
+from .SystemsSchema import SystemsResponseSchema
 
 
 class GroupsRequestSchema(BaseModel):
@@ -44,4 +44,5 @@ class GroupsResponseSchema(BaseModel):
     group_description: str
     group_system_id: int
     group_status: bool
+    group_system: SystemsResponseSchema
     roles: Optional[List[RolesResponseSchema]]

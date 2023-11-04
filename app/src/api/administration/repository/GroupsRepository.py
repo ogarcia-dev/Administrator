@@ -71,8 +71,9 @@ class GroupRepository(BaseRepository):
                             "message": "El sistema seleccionado no existe."
                         }
                     )
-            
-                if await session.query(self.model).filter(self.model.group_name == schema.group_name).exists():
+                
+                group_name = await session.execute(select(self.model).filter(self.model.group_name == schema.group_name))
+                if group_name.scalar():
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail={
@@ -89,10 +90,9 @@ class GroupRepository(BaseRepository):
                 )
 
                 session.add(group)
-                await session.commit()
-                await session.refresh(group)
 
-                roles = await session.query(Roles).filter(Roles.id.in_(schema.roles)).all()
+                roles_result = await session.execute(select(Roles).filter(Roles.id.in_(schema.roles)))
+                roles = roles_result.scalars().all()
                 group.roles = roles
 
                 await session.commit()
@@ -133,9 +133,8 @@ class GroupRepository(BaseRepository):
                 group.group_system_id = schema.group_system_id
                 group.group_status = schema.group_status
 
-                await session.commit()
-
-                roles = await session.query(Roles).filter(Roles.id.in_(schema.roles)).all()
+                roles_result = await session.execute(select(Roles).filter(Roles.id.in_(schema.roles)))
+                roles = roles_result.scalars().all()
                 group.roles = roles
 
                 await session.commit()
