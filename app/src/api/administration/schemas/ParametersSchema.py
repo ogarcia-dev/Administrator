@@ -5,6 +5,8 @@ from pydantic import (
     validator
 )
 
+from .SystemsSchema import SystemsResponseSchema
+
 
 
 class ParametersRequestSchema(BaseModel):
@@ -17,7 +19,7 @@ class ParametersRequestSchema(BaseModel):
     parameter_value5: Optional[str]
     parameter_value_json: Optional[str]
     parameter_status: bool
-    parameter_system: str
+    parameter_system_id: int
 
     @validator("parameter_code")
     def parameter_code_validator(cls, parameter_code: str):
@@ -25,11 +27,11 @@ class ParametersRequestSchema(BaseModel):
             raise ValueError("La longitud del nombre del código del parámetro debe tener entre 1 y 255 caracteres.")
         return parameter_code.strip().replace(" ", "_")
 
-    @validator("parameter_system")
-    def parameter_system_validator(cls, parameter_system: str):
-        if parameter_system is None:
+    @validator("parameter_system_id")
+    def parameter_system_id_validator(cls, parameter_system_id: int):
+        if parameter_system_id is None:
             raise ValueError("El campo del sistema es obligatorio.")
-        return parameter_system
+        return parameter_system_id
     
 
 
@@ -44,4 +46,5 @@ class ParametersResponseSchema(BaseModel):
     parameter_value5: Optional[str]
     parameter_value_json: Optional[str]
     parameter_status: bool
-    parameter_system: str
+    parameter_system_id: int
+    parameter_system: SystemsResponseSchema

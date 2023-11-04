@@ -29,7 +29,7 @@ class ParametersServices:
 
     @staticmethod
     async def parameters_delete(id: int) -> Any:
-        return await PARAMETER_REPOSITORY.delete(id)
+        return await PARAMETER_REPOSITORY.delete(id=id)
     
 
 
