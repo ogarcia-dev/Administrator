@@ -177,7 +177,7 @@ class MicroServiceRepository(BaseRepository):
                     existing_endpoint = await session.execute(select(Endpoints).options(
                         selectinload(Endpoints.roles), 
                         selectinload(Endpoints.groups)
-                    ).filter_by(Endpoints.endpoint_url == endpoint.endpoint_url))
+                    ).filter_by(endpoint_url = endpoint.endpoint_url))
                 
                     existing_endpoint = existing_endpoint.scalar()
 
