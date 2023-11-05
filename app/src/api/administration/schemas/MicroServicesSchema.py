@@ -1,7 +1,6 @@
 from typing import (
     List, 
     Optional,
-    Dict,
     Any
 )
 
@@ -10,8 +9,6 @@ from pydantic import (
     validator
 )
 
-from .RolesSchema import RolesResponseSchema
-from .GroupsSchema import GroupsResponseSchema
 from .SystemsSchema import SystemsResponseSchema
 
 
@@ -59,18 +56,30 @@ class MicroservicesRequestSchema(BaseModel):
 
 
 
+
+class MicroservicesRolesResponseSchema(BaseModel):
+    id: int
+    role_name: str
+
+
+
+class MicroservicesGroupsResponseSchema(BaseModel):
+    id: int
+    group_name: str
+
+
 class MicroservicesEndpointsResponseSchema(BaseModel):
     id: int
     endpoint_name: Optional[str]
     endpoint_url: str
     endpoint_request: str
-    endpoint_parameters: Optional[Any]
+    endpoint_parameters: Optional[str]
     endpoint_description: Optional[str]
     endpoint_status: bool
     endpoint_authenticated: bool
 
-    roles: Optional[List[RolesResponseSchema]]
-    groups: Optional[List[GroupsResponseSchema]]
+    roles: Optional[List[MicroservicesRolesResponseSchema]]
+    groups: Optional[List[MicroservicesGroupsResponseSchema]]
 
 
 
