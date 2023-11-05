@@ -173,10 +173,12 @@ class MicroServiceRepository(BaseRepository):
                 microservice.microservice_system_id = schema.microservice_system_id
 
                 for endpoint in schema.endpoints_microservice:
-                    existing_endpoint = await session.execute(
-                        select(Endpoints)
-                        .filter(Endpoints.endpoint_url == endpoint.endpoint_url)
-                    )
+
+                    existing_endpoint = await session.execute(select(Endpoints).options(
+                        selectinload(Endpoints.roles), 
+                        selectinload(Endpoints.groups)
+                    ).filter_by(Endpoints.endpoint_url == endpoint.endpoint_url))
+                
                     existing_endpoint = existing_endpoint.scalar()
 
                     if existing_endpoint:
