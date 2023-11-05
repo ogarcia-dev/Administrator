@@ -123,7 +123,7 @@ class MicroServiceRepository(BaseRepository):
                             endpoint_description=endpoint.endpoint_description,
                             endpoint_status=endpoint.endpoint_status,
                             endpoint_authenticated=endpoint.endpoint_authenticated,
-                            endpoint_microservice=microservice
+                            endpoint_microservice_id=microservice.id
                         )
 
                         for role_id in endpoint.roles:
@@ -179,7 +179,7 @@ class MicroServiceRepository(BaseRepository):
                         endpoint_description=endpoint.endpoint_description,
                         endpoint_status=endpoint.endpoint_status,
                         endpoint_authenticated=endpoint.endpoint_authenticated,
-                        endpoint_microservice_id=microservice.id
+                        endpoint_microservice_id=id
                     )
 
                     endpoint_data.roles = [await session.get(Roles, role_id) for role_id in endpoint.roles]

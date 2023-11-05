@@ -26,8 +26,8 @@ class MicroservicesEndpointsRequestSchema(BaseModel):
     endpoint_status: bool
     endpoint_authenticated: bool
 
-    roles: Optional[List[RolesResponseSchema]]
-    groups: Optional[List[GroupsResponseSchema]]
+    roles: Optional[List[int]]
+    groups: Optional[List[int]]
 
 
 
