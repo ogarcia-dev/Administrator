@@ -73,7 +73,7 @@ class MicroservicesEndpointsResponseSchema(BaseModel):
     endpoint_name: Optional[str]
     endpoint_url: str
     endpoint_request: str
-    endpoint_parameters: Optional[str]
+    endpoint_parameters: Optional[Any]
     endpoint_description: Optional[str]
     endpoint_status: bool
     endpoint_authenticated: bool

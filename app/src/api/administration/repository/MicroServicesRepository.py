@@ -73,6 +73,7 @@ class MicroServiceRepository(BaseRepository):
                 return microservice_schema
 
 
+
     async def create_microservices(self, schema: MicroservicesRequestSchema) -> Union[MicroservicesRequestSchema, HTTPException]:
         async with self.get_connection() as session:
             async with session.begin():
@@ -173,52 +174,21 @@ class MicroServiceRepository(BaseRepository):
                 microservice.microservice_system_id = schema.microservice_system_id
 
                 for endpoint in schema.endpoints_microservice:
-                        existing_endpoint = await session.execute(
-                            select(Endpoints).filter(Endpoints.endpoint_url == endpoint.endpoint_url)
-                        )
-                        existing_endpoint = existing_endpoint.scalar()
+                    endpoint_data = Endpoints(
+                        endpoint_name=endpoint.endpoint_name,
+                        endpoint_url=endpoint.endpoint_url,
+                        endpoint_request=endpoint.endpoint_request,
+                        endpoint_parameters=endpoint.endpoint_parameters,
+                        endpoint_description=endpoint.endpoint_description,
+                        endpoint_status=endpoint.endpoint_status,
+                        endpoint_authenticated=endpoint.endpoint_authenticated,
+                        endpoint_microservice_id=id
+                    )
+                    
+                    endpoint_data.roles = [await session.get(Roles, role_id) for role_id in endpoint.roles]
+                    endpoint_data.groups = [await session.get(Groups, group_id) for group_id in endpoint.groups]
 
-                        if existing_endpoint:
-                            existing_endpoint.endpoint_name=endpoint.endpoint_name
-                            existing_endpoint.endpoint_request=endpoint.endpoint_request
-                            existing_endpoint.endpoint_parameters=endpoint.endpoint_parameters
-                            existing_endpoint.endpoint_description=endpoint.endpoint_description
-                            existing_endpoint.endpoint_status=endpoint.endpoint_status
-                            existing_endpoint.endpoint_authenticated=endpoint.endpoint_authenticated
-                            existing_endpoint.endpoint_microservice_id=id
-    
-                        else:
-                            endpointData = Endpoints(
-                                endpoint_name=endpoint.endpoint_name,
-                                endpoint_request=endpoint.endpoint_request,
-                                endpoint_parameters=endpoint.endpoint_parameters,
-                                endpoint_description=endpoint.endpoint_description,
-                                endpoint_status=endpoint.endpoint_status,
-                                endpoint_authenticated=endpoint.endpoint_authenticated,
-                                endpoint_microservice_id=id
-                            )
-                            session.add(endpointData)
-
-                        get_endpoint_data = await session.execute(
-                            select(Endpoints).filter(Endpoints.endpoint_url == endpoint.endpoint_url)
-                        )
-                        get_endpoint_data = get_endpoint_data.scalar()
-
-                        try:
-                            await get_endpoint_data.roles.clear()
-                            await get_endpoint_data.groups.clear()
-                        except:
-                            pass
-
-                        for role_id in endpoint.roles:
-                            role = await session.get(Roles, role_id)
-                            if role:
-                                get_endpoint_data.roles.append(role)
-
-                        for group_id in endpoint.groups:
-                            group = await session.get(Groups, group_id)
-                            if group:
-                                get_endpoint_data.groups.append(group)
+                    session.merge(endpoint_data)
 
                 await session.commit()
 
