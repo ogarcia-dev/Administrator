@@ -1,3 +1,4 @@
+import json
 from typing import Union
 
 from fastapi import (
@@ -129,13 +130,11 @@ class MicroServiceRepository(BaseRepository):
                             endpoint_microservice_id=microservice.id
                         )
 
-                        for role_id in endpoint.roles:
-                            role = await session.get(Roles, role_id)
-                            endpoint_data.roles.append(role)
+                        _roles = await session.execute(select(Roles).filter(Roles.id.in_(endpoint.roles)))
+                        endpoint_data.roles.extend(_roles.scalars().all())
 
-                        for group_id in endpoint.groups:
-                            group = await session.get(Groups, group_id)
-                            endpoint_data.groups.append(group)
+                        _groups = await session.execute(select(Groups).filter(Groups.id.in_(endpoint.groups)))
+                        endpoint_data.groups.extend(_groups.scalars().all())
 
                         session.add(endpoint_data)
 
@@ -174,26 +173,44 @@ class MicroServiceRepository(BaseRepository):
                 microservice.microservice_system_id = schema.microservice_system_id
 
                 for endpoint in schema.endpoints_microservice:
-                    endpoint_data = Endpoints(
-                        endpoint_name=endpoint.endpoint_name,
-                        endpoint_url=endpoint.endpoint_url,
-                        endpoint_request=endpoint.endpoint_request,
-                        endpoint_parameters=endpoint.endpoint_parameters,
-                        endpoint_description=endpoint.endpoint_description,
-                        endpoint_status=endpoint.endpoint_status,
-                        endpoint_authenticated=endpoint.endpoint_authenticated,
-                        endpoint_microservice_id=id
+                    existing_endpoint = await session.execute(
+                        select(Endpoints)
+                        .filter(Endpoints.endpoint_url == endpoint.endpoint_url)
                     )
-                    
-                    endpoint_data.roles = [await session.get(Roles, role_id) for role_id in endpoint.roles]
-                    endpoint_data.groups = [await session.get(Groups, group_id) for group_id in endpoint.groups]
+                    existing_endpoint = existing_endpoint.scalar()
 
-                    session.merge(endpoint_data)
+                    if existing_endpoint:
+                        existing_endpoint.endpoint_name = endpoint.endpoint_name
+                        existing_endpoint.endpoint_request = endpoint.endpoint_request
+                        existing_endpoint.endpoint_parameters = json.loads(endpoint.endpoint_parameters)
+                        existing_endpoint.endpoint_description = endpoint.endpoint_description
+                        existing_endpoint.endpoint_status = endpoint.endpoint_status
+                        existing_endpoint.endpoint_authenticated = endpoint.endpoint_authenticated
+                        existing_endpoint.endpoint_microservice_id = id
+            
+                    else:
+                        existing_endpoint = Endpoints(
+                            endpoint_name=endpoint.endpoint_name,
+                            endpoint_request=endpoint.endpoint_request,
+                            endpoint_parameters=json.loads(endpoint.endpoint_parameters),
+                            endpoint_description=endpoint.endpoint_description,
+                            endpoint_status=endpoint.endpoint_status,
+                            endpoint_authenticated=endpoint.endpoint_authenticated,
+                            endpoint_microservice_id=id
+                        )
+                        session.add(existing_endpoint)
+
+                    _roles = await session.execute(select(Roles).filter(Roles.id.in_(endpoint.roles)))
+                    existing_endpoint.roles.clear()
+                    existing_endpoint.roles.extend(_roles.scalars().all())
+
+                    _groups = await session.execute(select(Groups).filter(Groups.id.in_(endpoint.groups)))
+                    existing_endpoint.groups.clear()
+                    existing_endpoint.groups.extend(_groups.scalars().all())
 
                 await session.commit()
 
                 return self.response_schema.model_validate(obj=microservice, from_attributes=True)
-
 
 
 MICRO_SERVICE_REPOSITORY = MicroServiceRepository()
