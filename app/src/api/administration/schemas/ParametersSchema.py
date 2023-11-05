@@ -1,4 +1,7 @@
-from typing import Optional
+from typing import (
+    Optional, 
+    Any
+)
 
 from pydantic import (
     BaseModel, 
@@ -17,7 +20,7 @@ class ParametersRequestSchema(BaseModel):
     parameter_value3: Optional[str]
     parameter_value4: Optional[str]
     parameter_value5: Optional[str]
-    parameter_value_json: Optional[str]
+    parameter_value_json: Optional[Any]
     parameter_status: bool
     parameter_system_id: int
 
@@ -44,7 +47,7 @@ class ParametersResponseSchema(BaseModel):
     parameter_value3: Optional[str]
     parameter_value4: Optional[str]
     parameter_value5: Optional[str]
-    parameter_value_json: Optional[str]
+    parameter_value_json: Optional[Any]
     parameter_status: bool
     parameter_system_id: int
     parameter_system: SystemsResponseSchema

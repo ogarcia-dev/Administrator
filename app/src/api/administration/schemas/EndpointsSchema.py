@@ -1,6 +1,8 @@
 from typing import (
     List, 
-    Optional
+    Optional,
+    Dict,
+    Any
 )
 
 from pydantic import (
@@ -17,12 +19,12 @@ class EndpointsRequestSchema(BaseModel):
     endpoint_name: Optional[str]
     endpoint_url: str
     endpoint_request: str
-    endpoint_parameters: Optional[str]
+    endpoint_parameters: Optional[Any]
     endpoint_description: Optional[str]
     endpoint_status: bool
     endpoint_authenticated: bool
 
-    endpoint_microservice: int
+    endpoint_microservice_id: int
 
     roles: Optional[List[str]]
     groups: Optional[List[str]]
@@ -41,18 +43,16 @@ class EndpointsRequestSchema(BaseModel):
 
 
 
-from .MicroServicesSchema import MicroservicesRequestSchema
 class EndpointsResponseSchema(BaseModel):
     id: int
     endpoint_name: Optional[str]
     endpoint_url: str
     endpoint_request: str
-    endpoint_parameters: Optional[str]
+    endpoint_parameters: Optional[Any]
     endpoint_description: Optional[str]
     endpoint_status: bool
     endpoint_authenticated: bool
-
-    endpoint_microservice: List[MicroservicesRequestSchema]
+    endpoint_microservice_id: int
 
     roles: Optional[List[RolesResponseSchema]]
     groups: Optional[List[GroupsResponseSchema]]

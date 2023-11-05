@@ -6,6 +6,7 @@ from fastapi import (
 )
 
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 from sqlalchemy.future import select
 
 from core.databases.Models import (
@@ -18,7 +19,8 @@ from core.databases.Models import (
 from core.databases.BaseRepositories import BaseRepository
 from src.api.administration.schemas.MicroServicesSchema import (
     MicroservicesRequestSchema,
-    MicroservicesResponseSchema
+    MicroservicesResponseSchema,
+    MicroservicesEndpointsResponseSchema
 )
 
 
@@ -27,6 +29,47 @@ class MicroServiceRepository(BaseRepository):
     model: MicroServices = MicroServices
     request_schema = MicroservicesRequestSchema
     response_schema = MicroservicesResponseSchema
+
+    async def detail_microservices(self, id: int) -> Union[MicroservicesResponseSchema, HTTPException]:
+        async with self.get_connection() as session:
+            async with session.begin():
+                statement = await session.execute(
+                    select(MicroServices).where(MicroServices.id == id)
+                )
+                microservice = statement.scalar()
+
+                if not microservice:
+                    return None
+
+                endpoints = await session.execute(
+                    select(Endpoints).where(Endpoints.endpoint_microservice_id == id)
+                )
+                endpoints = endpoints.scalars().all()
+
+                await session.execute(select(MicroServices).options(selectinload(MicroServices.microservice_system)))
+
+                microservice_schema = MicroservicesResponseSchema(
+                    id=microservice.id,
+                    microservice_name=microservice.microservice_name,
+                    microservice_base_url=microservice.microservice_base_url,
+                    microservice_status=microservice.microservice_status,
+                    microservice_system_id=microservice.microservice_system_id,
+                    endpoints_microservice=[MicroservicesEndpointsResponseSchema(
+                        id=endpoint.id,
+                        endpoint_name=endpoint.endpoint_name,
+                        endpoint_url=endpoint.endpoint_url,
+                        endpoint_request=endpoint.endpoint_request,
+                        endpoint_parameters=endpoint.endpoint_parameters,
+                        endpoint_description=endpoint.endpoint_description,
+                        endpoint_status=endpoint.endpoint_status,
+                        endpoint_authenticated=endpoint.endpoint_authenticated,
+                        roles=endpoint.roles,
+                        groups=endpoint.groups
+                    ) for endpoint in endpoints]
+                )
+
+                return microservice_schema
+
 
     async def create_microservices(self, schema: MicroservicesRequestSchema) -> Union[MicroservicesRequestSchema, HTTPException]:
         async with self.get_connection() as session:
@@ -136,7 +179,7 @@ class MicroServiceRepository(BaseRepository):
                         endpoint_description=endpoint.endpoint_description,
                         endpoint_status=endpoint.endpoint_status,
                         endpoint_authenticated=endpoint.endpoint_authenticated,
-                        endpoint_microservice=microservice
+                        endpoint_microservice_id=microservice.id
                     )
 
                     endpoint_data.roles = [await session.get(Roles, role_id) for role_id in endpoint.roles]

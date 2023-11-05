@@ -13,7 +13,7 @@ class MicroservicesServices:
 
     @staticmethod
     async def microservices_get_detail(id: int) -> Any:
-        return await MICRO_SERVICE_REPOSITORY.get(id=id)
+        return await MICRO_SERVICE_REPOSITORY.detail_microservices(id)
 
     @staticmethod
     async def microservices_create(schema: MicroservicesRequestSchema) -> Any:

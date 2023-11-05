@@ -1,6 +1,8 @@
 from typing import (
     List, 
-    Optional
+    Optional,
+    Dict,
+    Any
 )
 
 from pydantic import (
@@ -8,8 +10,24 @@ from pydantic import (
     validator
 )
 
-from src.api.administration.schemas.SystemsSchema import SystemsResponseSchema
-from src.api.administration.schemas.EndpointsSchema import EndpointsRequestSchema
+from .RolesSchema import RolesResponseSchema
+from .GroupsSchema import GroupsResponseSchema
+from .SystemsSchema import SystemsResponseSchema
+
+
+
+class MicroservicesEndpointsRequestSchema(BaseModel):
+    id: int
+    endpoint_name: Optional[str]
+    endpoint_url: str
+    endpoint_request: str
+    endpoint_parameters: Optional[Any]
+    endpoint_description: Optional[str]
+    endpoint_status: bool
+    endpoint_authenticated: bool
+
+    roles: Optional[List[RolesResponseSchema]]
+    groups: Optional[List[GroupsResponseSchema]]
 
 
 
@@ -19,7 +37,7 @@ class MicroservicesRequestSchema(BaseModel):
     microservice_status: bool
     microservice_system_id: int
 
-    endpoints_microservice: Optional[List[EndpointsRequestSchema]]
+    endpoints_microservice: Optional[List[MicroservicesEndpointsRequestSchema]]
 
     @validator("microservice_name")
     def microservice_name_validator(cls, microservice_name:str):
@@ -41,10 +59,27 @@ class MicroservicesRequestSchema(BaseModel):
 
 
 
+class MicroservicesEndpointsResponseSchema(BaseModel):
+    id: int
+    endpoint_name: Optional[str]
+    endpoint_url: str
+    endpoint_request: str
+    endpoint_parameters: Optional[Any]
+    endpoint_description: Optional[str]
+    endpoint_status: bool
+    endpoint_authenticated: bool
+
+    roles: Optional[List[RolesResponseSchema]]
+    groups: Optional[List[GroupsResponseSchema]]
+
+
+
 class MicroservicesResponseSchema(BaseModel):
     id: int
     microservice_name: str
     microservice_base_url: str
     microservice_status: bool
+    microservice_system_id: int
+    microservice_system: Optional[SystemsResponseSchema] = None
 
-    endpoints_microservice: Optional[List[EndpointsRequestSchema]]
+    endpoints_microservice: Optional[List[MicroservicesEndpointsResponseSchema]] = None
