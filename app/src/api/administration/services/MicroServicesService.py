@@ -13,7 +13,7 @@ class MicroservicesServices:
 
     @staticmethod
     async def microservices_get_detail(id: int) -> Any:
-        return await MICRO_SERVICE_REPOSITORY.detail_microservices(id)
+        return await MICRO_SERVICE_REPOSITORY.get(id=id)
 
     @staticmethod
     async def microservices_create(schema: MicroservicesRequestSchema) -> Any:
@@ -26,7 +26,7 @@ class MicroservicesServices:
     @staticmethod
     async def microservices_delete(id: int) -> Any:
         return await MICRO_SERVICE_REPOSITORY.delete(id=id)
-    
+
 
 
 MICRO_SERVICE_SERVICE = MicroservicesServices()

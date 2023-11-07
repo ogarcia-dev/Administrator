@@ -1,4 +1,3 @@
-import json
 from typing import Union
 
 from fastapi import (
@@ -12,18 +11,12 @@ from sqlalchemy.future import select
 
 from core.databases.Models import (
     MicroServices,
-    Systems,
-    Endpoints,
-    Roles,
-    Groups
+    Systems
 )
 from core.databases.BaseRepositories import BaseRepository
 from src.api.administration.schemas.MicroServicesSchema import (
     MicroservicesRequestSchema,
-    MicroservicesResponseSchema,
-    MicroservicesEndpointsResponseSchema,
-    MicroservicesRolesResponseSchema,
-    MicroservicesGroupsResponseSchema
+    MicroservicesResponseSchema
 )
 
 
@@ -32,47 +25,6 @@ class MicroServiceRepository(BaseRepository):
     model: MicroServices = MicroServices
     request_schema = MicroservicesRequestSchema
     response_schema = MicroservicesResponseSchema
-
-    async def detail_microservices(self, id: int) -> Union[MicroservicesResponseSchema, HTTPException]:
-        async with self.get_connection() as session:
-            async with session.begin():
-                statement = await session.execute(
-                    select(MicroServices).where(MicroServices.id == id)
-                )
-                microservice = statement.scalar()
-
-                if not microservice:
-                    return None
-
-                endpoints = await session.execute(
-                    select(Endpoints).where(Endpoints.endpoint_microservice_id == id)
-                )
-                endpoints = endpoints.scalars().all()
-
-                await session.execute(select(MicroServices).options(selectinload(MicroServices.microservice_system)))
-
-                microservice_schema = MicroservicesResponseSchema(
-                    id=microservice.id,
-                    microservice_name=microservice.microservice_name,
-                    microservice_base_url=microservice.microservice_base_url,
-                    microservice_status=microservice.microservice_status,
-                    microservice_system_id=microservice.microservice_system_id,
-                    endpoints_microservice=[MicroservicesEndpointsResponseSchema(
-                        id=endpoint.id,
-                        endpoint_name=endpoint.endpoint_name,
-                        endpoint_url=endpoint.endpoint_url,
-                        endpoint_request=endpoint.endpoint_request,
-                        endpoint_parameters=endpoint.endpoint_parameters,
-                        endpoint_description=endpoint.endpoint_description,
-                        endpoint_status=endpoint.endpoint_status,
-                        endpoint_authenticated=endpoint.endpoint_authenticated,
-                        roles=[MicroservicesRolesResponseSchema(id=role.id, role_name=role.role_name) for role in endpoint.roles],
-                        groups=[MicroservicesGroupsResponseSchema(id=group.id, group_name=group.group_name) for group in endpoint.groups]
-                    ) for endpoint in endpoints]
-                )
-
-                return microservice_schema
-
 
 
     async def create_microservices(self, schema: MicroservicesRequestSchema) -> Union[MicroservicesRequestSchema, HTTPException]:
@@ -116,28 +68,9 @@ class MicroServiceRepository(BaseRepository):
                         microservice_system_id=schema.microservice_system_id
                     )
                     session.add(microservice)
-                    session.flush()
-
-                    for endpoint in schema.endpoints_microservice:
-                        endpoint_data = Endpoints(
-                            endpoint_name=endpoint.endpoint_name,
-                            endpoint_url=endpoint.endpoint_url,
-                            endpoint_request=endpoint.endpoint_request,
-                            endpoint_parameters=endpoint.endpoint_parameters,
-                            endpoint_description=endpoint.endpoint_description,
-                            endpoint_status=endpoint.endpoint_status,
-                            endpoint_authenticated=endpoint.endpoint_authenticated,
-                            endpoint_microservice_id=microservice.id
-                        )
-
-                        _roles = await session.execute(select(Roles).filter(Roles.id.in_(endpoint.roles)))
-                        endpoint_data.roles.extend(_roles.scalars().all())
-
-                        _groups = await session.execute(select(Groups).filter(Groups.id.in_(endpoint.groups)))
-                        endpoint_data.groups.extend(_groups.scalars().all())
-
-                        session.add(endpoint_data)
-
+    
+                    await session.commit()
+                    
                     return self.response_schema.model_validate(obj=microservice, from_attributes=True)
             
                 except IntegrityError as error:
@@ -171,44 +104,6 @@ class MicroServiceRepository(BaseRepository):
                 microservice.microservice_base_url = schema.microservice_base_url
                 microservice.microservice_status = schema.microservice_status
                 microservice.microservice_system_id = schema.microservice_system_id
-
-                for endpoint in schema.endpoints_microservice:
-
-                    existing_endpoint = await session.execute(select(Endpoints).options(
-                        selectinload(Endpoints.roles), 
-                        selectinload(Endpoints.groups)
-                    ).filter_by(endpoint_url = endpoint.endpoint_url))
-                
-                    existing_endpoint = existing_endpoint.scalar()
-
-                    if existing_endpoint:
-                        existing_endpoint.endpoint_name = endpoint.endpoint_name
-                        existing_endpoint.endpoint_request = endpoint.endpoint_request
-                        existing_endpoint.endpoint_parameters = json.loads(endpoint.endpoint_parameters)
-                        existing_endpoint.endpoint_description = endpoint.endpoint_description
-                        existing_endpoint.endpoint_status = endpoint.endpoint_status
-                        existing_endpoint.endpoint_authenticated = endpoint.endpoint_authenticated
-                        existing_endpoint.endpoint_microservice_id = id
-            
-                    else:
-                        existing_endpoint = Endpoints(
-                            endpoint_name=endpoint.endpoint_name,
-                            endpoint_request=endpoint.endpoint_request,
-                            endpoint_parameters=json.loads(endpoint.endpoint_parameters),
-                            endpoint_description=endpoint.endpoint_description,
-                            endpoint_status=endpoint.endpoint_status,
-                            endpoint_authenticated=endpoint.endpoint_authenticated,
-                            endpoint_microservice_id=id
-                        )
-                        session.add(existing_endpoint)
-
-                    _roles = await session.execute(select(Roles).filter(Roles.id.in_(endpoint.roles)))
-                    existing_endpoint.roles.clear()
-                    existing_endpoint.roles.extend(_roles.scalars().all())
-
-                    _groups = await session.execute(select(Groups).filter(Groups.id.in_(endpoint.groups)))
-                    existing_endpoint.groups.clear()
-                    existing_endpoint.groups.extend(_groups.scalars().all())
 
                 await session.commit()
 
