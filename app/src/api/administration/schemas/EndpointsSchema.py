@@ -26,15 +26,15 @@ class EndpointsRequestSchema(BaseModel):
 
     endpoint_microservice_id: int
 
-    roles: Optional[List[str]]
-    groups: Optional[List[str]]
+    roles: Optional[List[int]]
+    groups: Optional[List[int]]
 
     @validator("endpoint_name")
     def endpoint_name_validator(cls, endpoint_name: str):
         if len(endpoint_name) < 1 or len(endpoint_name) > 255:
             raise ValueError("La longitud del nombre del punto final debe tener entre 1 y 255 caracteres.")
         return endpoint_name
-    
+
     @validator("endpoint_url")
     def endpoint_url_validator(cls, endpoint_url: str):
         if len(endpoint_url) < 1 or len(endpoint_url) > 512:

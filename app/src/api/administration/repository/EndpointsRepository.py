@@ -89,12 +89,12 @@ class EndpointRepository(BaseRepository):
                         "message": "Los datos base del sistema ya existe."
                     }
                 )
-    
 
-    async def create_endpoints(self, schema: EndpointsRequestSchema) -> Union[Endpoints, HTTPException]:
+
+    async def create_endpoints(self, id_microservice: int, schema: EndpointsRequestSchema) -> Union[Endpoints, HTTPException]:
         async with self.get_connection() as session:
             async with session.begin():
-                microservice = await session.get(MicroServices, schema.endpoint_microservice)
+                microservice = await session.get(MicroServices, id_microservice)
                 if microservice is None:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
@@ -146,7 +146,7 @@ class EndpointRepository(BaseRepository):
                 return self.response_schema.model_validate(obj=endpoint, from_attributes=True)
 
 
-    async def update_endpoints(self, id: int, schema: EndpointsRequestSchema) -> Union[Endpoints, HTTPException]:
+    async def update_endpoints(self, id_microservice: int, id: int, schema: EndpointsRequestSchema) -> Union[Endpoints, HTTPException]:
         async with self.get_connection() as session:
             async with session.begin():
                 statement = select(self.model).where(self.model.id == id)
@@ -164,7 +164,7 @@ class EndpointRepository(BaseRepository):
                         }
                     )
 
-                microservice = await session.get(MicroServices, schema.endpoint_microservice)
+                microservice = await session.get(MicroServices, id_microservice)
                 if microservice is None:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,

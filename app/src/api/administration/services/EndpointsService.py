@@ -18,12 +18,12 @@ class EndpointsServices:
         return await ENDPOINT_REPOSITORY.get(id=id)
     
     @staticmethod
-    async def endpoints_create(schema: EndpointsRequestSchema) -> Any:
-        return await ENDPOINT_REPOSITORY.create_endpoints(schema)
+    async def endpoints_create(id_microservice: int, schema: EndpointsRequestSchema) -> Any:
+        return await ENDPOINT_REPOSITORY.create_endpoints(id_microservice, schema)
     
     @staticmethod
-    async def endpoints_update(id: int, schema: EndpointsRequestSchema) -> Any:
-        return await ENDPOINT_REPOSITORY.update_endpoints(id, schema)
+    async def endpoints_update(id_microservice: int, id: int, schema: EndpointsRequestSchema) -> Any:
+        return await ENDPOINT_REPOSITORY.update_endpoints(id_microservice, id, schema)
     
     @staticmethod
     async def endpoints_delete(id: int) -> Any:
