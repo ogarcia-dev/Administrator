@@ -16,6 +16,10 @@ class EndpointsServices:
     @staticmethod
     async def endpoints_get_detail(id: int) -> Any:
         return await ENDPOINT_REPOSITORY.get(id=id)
+
+    @staticmethod
+    async def endpoints_get_list(page: int, limit: int, search: str) -> Any:
+        return await ENDPOINT_REPOSITORY.list(page_number=page, page_size=limit, search=search)
     
     @staticmethod
     async def endpoints_create(id_microservice: int, schema: EndpointsRequestSchema) -> Any:

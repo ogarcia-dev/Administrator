@@ -1,7 +1,8 @@
 from typing import Any
 
 from fastapi import (
-    APIRouter, 
+    APIRouter,
+    Query, 
     Request, 
     status, 
     Depends
@@ -25,6 +26,21 @@ async def createBaseMicroservice(
         status=status.HTTP_200_OK,
         detail="Se crearon las rutas base.",
         result= await ENDPOINT_SERVICE.endpoints_base_microservice(request)
+    )
+
+
+
+@endpoints_router.get("/list", response_model=ResponseSchema, response_model_exclude_none=True, status_code=status.HTTP_200_OK)
+async def listEndpoints(
+    page: int = 1, 
+    limit: int = 10, 
+    search: str = Query(None, alias="search"),
+    authenticated = Depends(JWT_MIDDLEWARE)
+) -> Any:
+    return ResponseSchema(
+        status=status.HTTP_200_OK,
+        detail="List Endpoint",
+        result= await ENDPOINT_SERVICE.endpoints_get_list(page, limit, search)
     )
 
 
