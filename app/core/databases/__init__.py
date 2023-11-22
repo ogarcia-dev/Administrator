@@ -31,7 +31,7 @@ class AsyncDatabaseSession:
             Args:
                 url (str, optional): La URL de la base de datos (por defecto, la URL de la configuración).
         """
-        self.engine = create_async_engine(url, echo=True)
+        self.engine = create_async_engine(url, echo=False)
         self.SessionLocal = sessionmaker(
             bind=self.engine,
             class_=AsyncSession,
