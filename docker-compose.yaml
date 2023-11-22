@@ -5,7 +5,7 @@ services:
         build: .
         image: administrator_image
         container_name: administrator_container
-        command: uvicorn core:app --host 0.0.0.0 --port 8002 --reload --workers 4
+        command: uvicorn core:app --host 0.0.0.0 --port 8002 --reload --workers 8
 
         ports:
             - 8002:8002
